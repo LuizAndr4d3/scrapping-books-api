@@ -21,7 +21,7 @@ Before you begin, make sure you have installed:
 
 1. Clone the repository:
 ```bash
-git clone [<repository-url>](https://github.com/LuizAndr4d3/scrapping-books-api)
+git clone https://github.com/LuizAndr4d3/scrapping-books-api
 cd scraping-books-api
 ```
 
