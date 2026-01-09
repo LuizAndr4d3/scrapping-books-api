@@ -15,7 +15,7 @@ export class BooksController {
         return getDetailedBookData(Number(id));
     }
 
-    @Get('category')
+    @Get('category/books')
     async getBooksByCategory(@Query('name') name?: string, @Query('id') id?: string, @Query('page') page?: string) {
         if(!name && !id) throw new BadRequestException('Name or id is required');
         try{

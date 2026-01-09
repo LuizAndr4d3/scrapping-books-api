@@ -180,7 +180,7 @@ GET http://localhost:3000/api/book_details?id=1000
 
 Returns a list of books filtered by category.
 
-**GET** `/books/category`
+**GET** `/api/category/books`
 
 **Query Parameters:**
 - `id` (optional): Category ID
