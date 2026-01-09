@@ -1,5 +1,7 @@
 export interface Book {
+    id: number;
     title: string;
+    url: string;
     image: string;
     price: number;
     stock_availability: boolean;

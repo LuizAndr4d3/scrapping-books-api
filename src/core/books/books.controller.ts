@@ -1,13 +1,18 @@
 import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
-import { getBooksData, getBooksDataByCategory, getCategoryList } from "../scraper/books.scrapper";
+import { getAllBooksData, getBooksDataByCategory, getCategoryList, getDetailedBookData } from "../scraper/books.scrapper";
 
 
-@Controller('books')
+@Controller('api')
 export class BooksController {
-    @Get()
+    @Get('books')
     async getBooks(@Query('page') page?: string) {
         const pageNumber = page ? Number(page) : undefined;
-        return getBooksData(pageNumber);
+        return getAllBooksData(pageNumber);
+    }
+
+    @Get('book_details')
+    async getDetailedBook(@Query('id') id: string) {
+        return getDetailedBookData(Number(id));
     }
 
     @Get('category')
