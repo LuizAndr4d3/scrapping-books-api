@@ -103,21 +103,21 @@ scraping-books-api/
 
 ### Base URL
 ```
-http://localhost:3000/books
+http://localhost:3000/api
 ```
 
 ### 1. List Books
 
 Returns a paginated list of books.
 
-**GET** `/books`
+**GET** `/api/books`
 
 **Query Parameters:**
 - `page` (optional): Page number (default: 1)
 
 **Example:**
 ```bash
-GET http://localhost:3000/books?page=1
+GET http://localhost:3000/api/books?page=1
 ```
 
 **Response:**
@@ -130,7 +130,9 @@ GET http://localhost:3000/books?page=1
   "shownBooks": 20,
   "books": [
     {
+      "id": 1000,
       "title": "A Light in the Attic",
+      "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
       "price": 51.77,
       "image": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg",
       "stock_availability": true
@@ -139,7 +141,42 @@ GET http://localhost:3000/books?page=1
 }
 ```
 
-### 2. List Books by Category
+### 2. Get Book Details by ID
+
+Returns detailed information about a specific book.
+
+**GET** `/api/book_details`
+
+**Query Parameters:**
+- `id` (required): Book ID
+
+**Example:**
+```bash
+GET http://localhost:3000/api/book_details?id=1000
+```
+
+**Response:**
+```json
+{
+  "id": 1000,
+  "title": "A Light in the Attic",
+  "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+  "price": 51.77,
+  "image": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg",
+  "stock_availability": true,
+  "upc": "a897fe39b1053632",
+  "product_type": "Books",
+  "tax": 0,
+  "stock_quantity": 22,
+  "category": "Poetry",
+  "reviews_count": 0,
+  "description": "It's hard to imagine a world without A Light in the Attic..."
+}
+```
+
+**Note:** This endpoint uses an optimized algorithm to calculate which page contains the book, making it very efficient even with 1000 books. The page is calculated using the formula: `Math.ceil((TotalBooks - BookID + 1) / BooksPerPage)` since books are displayed in descending order by ID.
+
+### 3. List Books by Category
 
 Returns a list of books filtered by category.
 
@@ -155,13 +192,13 @@ Returns a list of books filtered by category.
 **Examples:**
 ```bash
 # Search by ID
-GET http://localhost:3000/books/category?id=2
+GET http://localhost:3000/api/category?id=2
 
 # Search by name
-GET http://localhost:3000/books/category?name=Travel
+GET http://localhost:3000/api/category?name=Travel
 
 # With pagination
-GET http://localhost:3000/books/category?id=2&page=1
+GET http://localhost:3000/api/category?id=2&page=1
 ```
 
 **Response:**
@@ -174,7 +211,9 @@ GET http://localhost:3000/books/category?id=2&page=1
   "shownBooks": 11,
   "books": [
     {
+      "id": 45,
       "title": "It's Only the Himalayas",
+      "url": "https://books.toscrape.com/catalogue/its-only-the-himalayas_45/index.html",
       "price": 45.17,
       "image": "https://books.toscrape.com/media/cache/ab/b3/abb3a3c65d1e8ef2eb0b4e4e6b2996e4.jpg",
       "stock_availability": true
@@ -183,15 +222,15 @@ GET http://localhost:3000/books/category?id=2&page=1
 }
 ```
 
-### 3. List Categories
+### 4. List Categories
 
 Returns all available categories.
 
-**GET** `/books/categories`
+**GET** `/api/categories`
 
 **Example:**
 ```bash
-GET http://localhost:3000/books/categories
+GET http://localhost:3000/api/categories
 ```
 
 **Response:**
@@ -217,10 +256,26 @@ GET http://localhost:3000/books/categories
 ### Book
 ```typescript
 {
+  id: number;                 // Unique book ID (extracted from URL)
   title: string;              // Book title
+  url: string;                // Full URL to book's detail page
   price: number;              // Price in British pounds
   image: string;              // Cover image URL
   stock_availability: boolean // Stock availability
+}
+```
+
+### DetailedBook
+```typescript
+{
+  // All fields from Book, plus:
+  upc: string;                // Universal Product Code
+  product_type: string;       // Product type (usually "Books")
+  tax: number;                // Tax amount
+  stock_quantity: number;     // Number of items in stock
+  category: string;           // Book category name
+  reviews_count: number;      // Number of reviews
+  description: string;        // Book description
 }
 ```
 
@@ -281,14 +336,29 @@ The file is automatically created if it doesn't exist and is synchronized betwee
 
 The API returns appropriate errors in case of problems:
 
-- **400 Bad Request**: When required parameters are not provided
-- **Custom error**: When a category is not found
+- **400 Bad Request**: When required parameters are not provided or invalid
+- **Custom error**: When a category or book is not found
 
-**Error example:**
+**Error examples:**
 ```json
+// Category not found
 {
   "statusCode": 400,
   "message": "Category not found",
+  "error": "Bad Request"
+}
+
+// Book not found
+{
+  "statusCode": 400,
+  "message": "Book with id 9999 not found",
+  "error": "Bad Request"
+}
+
+// Missing required parameter
+{
+  "statusCode": 400,
+  "message": "Name or id is required",
   "error": "Bad Request"
 }
 ```
@@ -299,6 +369,9 @@ The API returns appropriate errors in case of problems:
 2. Categories are cached locally for better performance
 3. Pagination is supported for book listings
 4. All monetary values are in British pounds (£)
+5. Book IDs are extracted from URLs and are displayed in descending order (ID 1000 first, ID 1 last)
+6. The book details endpoint uses mathematical optimization to directly calculate which page contains a specific book, requiring only 2 HTTP requests (one for the listing page, one for the detail page)
+7. Each book in listings now includes its `id` and `url`, allowing direct access to detailed information
 
 ## 🤝 Contributing
 
@@ -314,8 +387,12 @@ This project is private and has no public license.
 
 ## 👨‍💻 Author
 
+Luiz Gustavo Andrade
+
 Developed as a study project with NestJS and TypeScript.
 
 ---
 
 **⚠️ Warning:** This project is for educational purposes only. Please respect the Terms of Use of the Books To Scrape website when using this API.
+
+> **Note**: This README.md was enhanced with AI
